@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-const PORT = Number(process.env.PORT) || 5000;
+const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
-  console.log(`Nexaro API running on http://localhost:${PORT}${basePath}`);
+  console.log(`Nexaro API running on http://localhost:3000`);
 });
