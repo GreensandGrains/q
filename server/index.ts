@@ -1,4 +1,3 @@
-import "dotenv/config";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,28 +9,27 @@ import statsRouter from "./routes/stats.js";
 const app = express();
 app.use(express.json());
 
-app.use("/api", authRouter);
-app.use("/api", plansRouter);
-app.use("/api", ticketsRouter);
-app.use("/api", statsRouter);
+const basePath = (process.env.BASE_PATH || "/").replace(/\/$/, "") || "/";
 
-app.get("/api/healthz", (_req, res) => {
-  res.json({ status: "ok" });
-});
+const api = express.Router();
+api.use(authRouter);
+api.use(plansRouter);
+api.use(ticketsRouter);
+api.use(statsRouter);
+api.get("/healthz", (_req, res) => res.json({ status: "ok" }));
+
+app.use(`${basePath}/api`, api);
 
 if (process.env.NODE_ENV === "production") {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const publicDir = path.join(__dirname, "public");
-  app.use(express.static(publicDir));
-  app.get("*path", (_req, res) => {
+  const publicDir = path.join(__dirname, "..", "dist", "public");
+  app.use(basePath === "/" ? "/" : basePath, express.static(publicDir));
+  app.get(`${basePath === "/" ? "" : basePath}/*path`, (_req, res) => {
     res.sendFile(path.join(publicDir, "index.html"));
   });
 }
 
 const PORT = Number(process.env.PORT) || 5000;
 app.listen(PORT, () => {
-  console.log(`Nexaro API running on http://localhost:${PORT}`);
-  if (process.env.NODE_ENV === "production") {
-    console.log(`Frontend served from http://localhost:${PORT}`);
-  }
+  console.log(`Nexaro API running on http://localhost:${PORT}${basePath}`);
 });
